@@ -21,6 +21,7 @@ dependencies = [
 name = "auth"
 version = "0.1.0"
 dependencies = [
+ "dotenvy",
  "sqlx",
  "tokio",
 ]
