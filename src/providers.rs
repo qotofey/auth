@@ -43,3 +43,49 @@ impl HashFuncProvider for Argon2Provider {
         password_digest
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn get_password_hash() {
+        // Given
+        let argon2_provider = Argon2Provider;
+
+        // When
+        let res = argon2_provider.provide("!Qwerty123".to_owned());
+
+        // Then
+        assert_ne!(res, "!Qwerty123".to_owned());
+    }
+
+    #[tokio::test]
+    async fn get_two_different_password_hash() {
+        // Given
+        let argon2_provider = Argon2Provider;
+
+        // When
+        let res1 = argon2_provider.provide("!Qwerty123".to_owned());
+        let res2 = argon2_provider.provide("!Qwerty123".to_owned());
+
+        // Then
+        assert_ne!(res1, res2);
+    }
+
+    #[tokio::test]
+    async fn get_params_from_password_hash() {
+        // Given
+        let argon2_provider = Argon2Provider;
+
+        // When
+        let password_digest = argon2_provider.provide("!Qwerty123".to_owned());
+        let parsed_hash = argon2::PasswordHash::new(&password_digest).unwrap();
+        let parsed_params = argon2::Params::try_from(&parsed_hash).unwrap(); 
+
+        // Then
+        assert_eq!(parsed_params.m_cost(), 32768);
+        assert_eq!(parsed_params.t_cost(), 2);
+        assert_eq!(parsed_params.p_cost(), 1);
+    }
+}
