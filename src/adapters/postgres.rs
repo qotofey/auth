@@ -21,7 +21,7 @@ impl crate::app::commands::register_user::RegisterUserDao for UserRepository {
 
         let user = sqlx::query_as::<_, User>("INSERT INTO users DEFAULT VALUES RETURNING id;").fetch_one(&mut *transaction).await.unwrap();
 
-        let result = sqlx::query("INSERT INTO user_credentials (value, user_id) VALUES ($1, $2);")
+        let result = sqlx::query("INSERT INTO user_credentials (login, user_id) VALUES ($1, $2);")
                     .bind(username)
                     .bind(user.id)
                     .execute(&mut *transaction)
