@@ -1,0 +1,1 @@
+ALTER TABLE user_passwords ADD COLUMN salt VARCHAR(255);
