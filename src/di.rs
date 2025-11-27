@@ -1,24 +1,30 @@
 use crate::{
-    app::commands::hash_password::CreatePasswordHash,
+    app::commands::{
+        hash_password::CreatePasswordHash,
+        register_user::{RegisterUser, RegisterUserDao},
+    },
     // config::Config,
     providers::HashFuncProvider,
 };
 
-pub struct Container<H>
+pub struct Container<H, R>
 where
     H: HashFuncProvider,
+    R: RegisterUserDao,
 {
-    pub create_password_hash_command: CreatePasswordHash<H>, 
+    pub register_user_command: RegisterUser<H, R>, 
 }
 
-impl<H> Container<H>
+impl<H, R> Container<H, R>
 where
     H: HashFuncProvider,
+    R: RegisterUserDao,
 {
-    pub fn new(hash_func_provider: H) -> Self {
-        let create_password_hash_command = CreatePasswordHash::new(hash_func_provider);
+    pub fn new(hash_func_provider: H, repo: R) -> Self {
+        let register_user_command = RegisterUser::new(hash_func_provider, repo);
+        
         Self { 
-            create_password_hash_command,
+            register_user_command,
         }
     }
 }

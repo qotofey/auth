@@ -4,15 +4,19 @@ pub mod config;
 pub mod di;
 pub mod providers;
 pub mod app;
+pub mod adapters;
+pub mod errors;
 
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
     let conf = config::Config::init();
     println!("DATABASE_URL={}", conf.database_url);
+    let db_pool = sqlx::postgres::PgPoolOptions::new().max_connections(5).connect(&conf.database_url).await.unwrap();
 
     let argon2_provider = providers::Argon2Provider::new();
-    let container = di::Container::new(argon2_provider);
-    println!("Password hash = {}", container.create_password_hash_command.call("Qwerty123!".to_string()).await.unwrap());
+    let user_repo = adapters::postgres::UserRepository::new(db_pool);
+    let container = di::Container::new(argon2_provider, user_repo);
+    container.register_user_command.call("qotofey".to_string(), "Qwerty123!".to_string()).await.unwrap();
 }
 

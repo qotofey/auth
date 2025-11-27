@@ -18,7 +18,9 @@ where
     pub async fn call(&self, password: String) -> Result<String, String> {
         let password_hash = self.hash_func_provider.provide(password);
 
-        Ok(password_hash) } }
+        Ok(password_hash) 
+    }
+}
 
 #[cfg(test)]
 mod tests {
