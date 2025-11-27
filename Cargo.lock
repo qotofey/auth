@@ -36,6 +36,7 @@ dependencies = [
  "argon2",
  "dotenvy",
  "sqlx",
+ "thiserror",
  "tokio",
 ]
 
