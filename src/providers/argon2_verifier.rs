@@ -1,15 +1,6 @@
 use argon2::{
     Argon2,
-    Algorithm,
-    Version,
-    Params,
-    password_hash::{
-        rand_core::OsRng,  
-        SaltString,
-        PasswordHash,
-        PasswordHasher, 
-        PasswordVerifier,
-    },
+    password_hash::{PasswordHash, PasswordVerifier},
 };
 use crate::providers::HashVerifierProvider;
 
@@ -25,6 +16,7 @@ impl Argon2VerifierProvider {
 
 impl HashVerifierProvider for Argon2VerifierProvider {
     fn provide(&self, password: String, password_digest: String) -> bool {
+        println!("Password hash = {}", password_digest);
         let parsed_hash = PasswordHash::new(&password_digest).unwrap();
         
         Argon2::default()

@@ -1,8 +1,8 @@
 use crate::providers::IdProvider;
 
-pub struct RefreshTokenProvider;
+pub struct RefreshTokenGeneratorProvider;
 
-impl IdProvider for RefreshTokenProvider {
+impl IdProvider for RefreshTokenGeneratorProvider {
     fn provide(&self) -> Option<String> {
         let mut buffer = [0u8; 32];
         match getrandom::fill(&mut buffer) {
@@ -19,7 +19,7 @@ mod tests {
     #[test]
     fn get_refresh_token() {
         // Given
-        let id_provider = RefreshTokenProvider;
+        let id_provider = RefreshTokenGeneratorProvider;
 
         // When
         let token = id_provider.provide().unwrap();
@@ -31,7 +31,7 @@ mod tests {
     #[test]
     fn get_two_different_refresh_token() {
         // Given
-        let id_provider = RefreshTokenProvider;
+        let id_provider = RefreshTokenGeneratorProvider;
 
         // When
         let res1 = id_provider.provide().unwrap();

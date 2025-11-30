@@ -1,5 +1,12 @@
-use crate::errors::AppError;
+use crate::{
+    errors::AppError,
+    app::commands::{
+        register_user::RegisterUserDao,
+        authenticate_user::{AuthenticateUserDao, UserPassword},
+    },
+};
 
+#[derive(Clone)]
 pub struct UserRepository {
     pool: sqlx::PgPool,
 }
@@ -15,15 +22,16 @@ pub struct User {
     pub id: sqlx::types::uuid::Uuid,
 }
 
-impl crate::app::commands::register_user::RegisterUserDao for UserRepository {
-    async fn create(&self, username: String, password_digest: String) -> Result<(), AppError> {
+impl RegisterUserDao for UserRepository {
+    async fn register_user(&self, login_type: String, login: String, password_digest: String) -> Result<(), AppError> {
         let mut transaction = self.pool.begin().await.unwrap();
 
         let user = sqlx::query_as::<_, User>("INSERT INTO users DEFAULT VALUES RETURNING id;").fetch_one(&mut *transaction).await.unwrap();
 
-        let result = sqlx::query("INSERT INTO user_credentials (login, user_id) VALUES ($1, $2);")
-                    .bind(username)
+        let result = sqlx::query("INSERT INTO user_credentials (login, user_id, kind) VALUES ($1, $2, $3);")
+                    .bind(login)
                     .bind(user.id)
+                    .bind(login_type)
                     .execute(&mut *transaction)
                     .await;
         match result {
@@ -51,5 +59,33 @@ impl crate::app::commands::register_user::RegisterUserDao for UserRepository {
                 Ok(())
             }
         }
+    }
+}
+
+#[derive(sqlx::FromRow)]
+pub struct UserCredential {
+    pub kind: Option<String>,
+    pub login: String,
+    pub user_id: sqlx::types::uuid::Uuid,
+    // pub login_attempts: u32,
+}
+
+impl AuthenticateUserDao for UserRepository {
+    async fn find_password_hash_by_login(&self, login: String) -> Result<UserPassword, AppError> {
+        let password = sqlx::query_as::<_, UserPassword>(r#"
+                SELECT 
+                    user_passwords.user_id, 
+                    user_passwords.password_digest 
+                FROM user_credentials
+                INNER JOIN user_passwords ON user_credentials.user_id = user_passwords.user_id
+                WHERE user_credentials.login = $1
+            "#)
+            .bind(login)
+            .fetch_optional(&self.pool)
+            .await
+            .unwrap()
+            .unwrap();
+
+        Ok(password)
     }
 }

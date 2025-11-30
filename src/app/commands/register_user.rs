@@ -2,7 +2,7 @@ use crate::errors::AppError;
 use crate::providers::HashFuncProvider;
 
 pub trait RegisterUserDao {
-    async fn create(&self, username: String, password_digest: String) -> Result<(), AppError>;
+    async fn register_user(&self, login_type: String, login: String, password_digest: String) -> Result<(), AppError>;
 }
 
 pub struct RegisterUser<H, R>
@@ -30,8 +30,8 @@ where
                 return Err(AppError::UnknownError);
             }, 
         };
-
-        self.repo.create(username.trim().to_lowercase(), password_digest).await?;
+        let login_type = "username".to_string();
+        self.repo.register_user(login_type, username.trim().to_lowercase(), password_digest).await?;
 
         Ok(())
     }
