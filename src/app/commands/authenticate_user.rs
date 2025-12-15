@@ -93,10 +93,8 @@ where
             } else {
                 None
             };
-            match self.repo.update_failure_login(credentail.id, actual_failure_login_attempts, locked_until).await {
-                Ok(_) => if is_locked { return Err(AppError::TempLocked); },
-                Err(_) => return Err(AppError::UnknownDatabaseError),
-            };
+            self.repo.update_failure_login(credentail.id, actual_failure_login_attempts, locked_until).await?;
+            if is_locked { return Err(AppError::TempLocked); }
 
             return Err(AppError::LoginError);
         }
@@ -109,10 +107,7 @@ where
                 },
             };
 
-            match self.repo.upgrade_password_digest(secret.id, password_digest).await {
-                Ok(_) => {},
-                Err(_) => return Err(AppError::UnknownDatabaseError),
-            }
+            self.repo.upgrade_password_digest(secret.id, password_digest).await?;
         }
 
         let refresh_token = match self.refresh_token_generator.provide() {

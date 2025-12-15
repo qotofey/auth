@@ -85,15 +85,18 @@ impl AuthenticateUserDao for UserRepository {
             .await
     }
 
-    async fn update_failure_login(&self, id: uuid::Uuid, actual_failure_login_attempts: u16, locked_until: Option<chrono::NaiveDateTime>) -> Result<(), sqlx::Error> {
-        sqlx::query("UPDATE user_credentials SET login_attempts = $1, locked_until = $2 WHERE id = $3")
+    async fn update_failure_login(&self, id: uuid::Uuid, actual_failure_login_attempts: u16, locked_until: Option<chrono::NaiveDateTime>) -> Result<(), AppError> {
+        let result_of_update = sqlx::query("UPDATE user_credentials SET login_attempts = $1, locked_until = $2 WHERE id = $3")
             .bind(actual_failure_login_attempts as i16)
             .bind(locked_until)
             .bind(id)
             .execute(&self.pool)
-            .await?;
+            .await;
 
-        Ok(())
+        match result_of_update {
+            Ok(_) => Ok(()),
+            Err(_) => Err(AppError::UnknownDatabaseError),
+        }
     }
 
     async fn create_session(&self, user_credential_id: uuid::Uuid, refresh_token: String) -> Result<(), sqlx::Error> {
@@ -178,32 +181,44 @@ impl ChangePasswordDao for UserRepository {
             .await
     }
 
-    async fn upgrade_password_digest(&self, user_secret_id: uuid::Uuid, new_password_digest: String) -> Result<(), sqlx::Error> {
-        sqlx::query("UPDATE user_passwords SET password_digest = $1 WHERE id = $2")
+    async fn upgrade_password_digest(&self, user_secret_id: uuid::Uuid, new_password_digest: String) -> Result<(), AppError> {
+        let result_of_update = sqlx::query("UPDATE user_passwords SET password_digest = $1 WHERE id = $2")
             .bind(new_password_digest)
             .bind(user_secret_id)
             .execute(&self.pool)
-            .await?;
-        Ok(())
+            .await;
+        
+        match result_of_update {
+            Ok(_) => Ok(()),
+            Err(_) => Err(AppError::UnknownDatabaseError),
+        }
     }
 }
 
 impl DeleteUserDao for UserRepository {
-    async fn delete_user_by_id(&self, user_id: uuid::Uuid) -> Result<(), sqlx::Error> {
-        sqlx::query("UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1")
+    async fn delete_user_by_id(&self, user_id: uuid::Uuid) -> Result<(), AppError> {
+        let result_of_update = sqlx::query("UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1")
             .bind(user_id)
             .execute(&self.pool)
-            .await?;
-        Ok(())
+            .await;
+
+        match result_of_update {
+            Ok(_) => Ok(()),
+            Err(_) => Err(AppError::UnknownDatabaseError),
+        }
     }
 }
 
 impl RestoreUserDao for UserRepository {
-    async fn restore_user_by_id(&self, user_id: uuid::Uuid) -> Result<(), sqlx::Error> {
-        sqlx::query("UPDATE users SET deleted_at = NULL WHERE id = $1")
+    async fn restore_user_by_id(&self, user_id: uuid::Uuid) -> Result<(), AppError> {
+        let result_of_update = sqlx::query("UPDATE users SET deleted_at = NULL WHERE id = $1")
             .bind(user_id)
             .execute(&self.pool)
-            .await?;
-        Ok(())
+            .await;
+
+        match result_of_update {
+            Ok(_) => Ok(()),
+            Err(_) => Err(AppError::UnknownDatabaseError),
+        }
     }
 }

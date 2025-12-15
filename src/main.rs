@@ -34,6 +34,7 @@ async fn main() {
         user_repo.clone(),
         user_repo.clone(),
         user_repo.clone(),
+        user_repo.clone(),
         user_repo,
     );
     // let res = container.register_user_command.call("\tusertest0\r\n".to_string(), "Qwerty123!".to_string()).await.unwrap();
@@ -50,5 +51,6 @@ async fn main() {
 
     println!("Refresh Token = {} \nAccess Token = {}", res.refresh_token, res.access_token);
     let _ = container.delete_user_command.call(res.user_id, "123123".to_string()).await.unwrap();
+    let _ = container.restore_user_command.call(res.user_id, "123123".to_string()).await.unwrap();
 }
 
