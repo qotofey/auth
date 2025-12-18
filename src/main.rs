@@ -37,7 +37,8 @@ async fn main() {
         user_repo.clone(),
         user_repo,
     );
-    // let res = container.register_user_command.call("\tusertest0\r\n".to_string(), "Qwerty123!".to_string()).await.unwrap();
+    let res = container.register_user_command.call("qotofey".to_string(), "Qwerty123!".to_string()).await.unwrap();
+
     let res = container.authenticate_user_command.call("qotofey  ".to_string(), "Qwerty123!".to_string()).await.unwrap();
     let res = container.refresh_session_command.call(res.refresh_token).await.unwrap();
     let res = container.refresh_session_command.call(res.refresh_token).await.unwrap();

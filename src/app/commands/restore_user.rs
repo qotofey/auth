@@ -28,7 +28,7 @@ where
 
         match self.repo.restore_user_by_id(user_id).await {
             Ok(_) => Ok(()),
-            Err(_) => Err(AppError::UnknownDatabaseError), 
+            Err(_) => Err(AppError::UnknownDatabaseError),
         }
     }
 }
