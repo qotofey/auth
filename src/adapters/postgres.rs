@@ -40,12 +40,15 @@ impl RegisterUserDao for UserRepository {
             Err(_) => return Err(AppError::UnknownDatabaseError),
         };
 
-        let user = match sqlx::query_as::<_, User>("INSERT INTO users DEFAULT VALUES RETURNING id;").fetch_one(&mut *transaction).await {
-            Ok(user) => user,
-            Err(_) => return Err(AppError::UnknownDatabaseError),
-        };
+        let user = sqlx::query_as::<_, User>("INSERT INTO users DEFAULT VALUES RETURNING id, first_name, middle_name, last_name, birthdate, gender, blocked_at, deleted_at")
+            .fetch_one(&mut *transaction)
+            .await.unwrap();
+        // {
+        //     Ok(user) => user,
+        //     _ => return Err(AppError::UnknownDatabaseError),
+        // };
 
-        match sqlx::query("INSERT INTO user_credentials (login, user_id, kind) VALUES ($1, $2, $3);")
+        match sqlx::query("INSERT INTO user_credentials (login, user_id, kind) VALUES ($1, $2, $3)")
             .bind(login)
             .bind(user.id)
             .bind(login_type)
@@ -64,7 +67,7 @@ impl RegisterUserDao for UserRepository {
             },
             Err(_) => return Err(AppError::UnknownDatabaseError),
         }
-        match sqlx::query("INSERT INTO user_passwords (password_digest, user_id) VALUES ($1, $2);")
+        match sqlx::query("INSERT INTO user_passwords (password_digest, user_id) VALUES ($1, $2)")
             .bind(password_digest)
             .bind(user.id)
             .execute(&mut *transaction)
