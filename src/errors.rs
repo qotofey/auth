@@ -9,6 +9,7 @@ pub enum AppError {
     LoginError,
     TempLocked,
     LoginRequired,
+    NotFound,
 }
 
 impl Display for AppError {
@@ -21,6 +22,8 @@ impl Display for AppError {
             AppError::LoginError => write!(f, "Incorrect login or password"),
             AppError::TempLocked => write!(f, "Temporarily locked"),
             AppError::LoginRequired => write!(f, "Login required"),
+            AppError::NotFound => write!(f, "Not Found"),
         }
     }
 }
+

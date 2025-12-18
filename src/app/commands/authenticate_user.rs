@@ -6,15 +6,21 @@ use crate::{
         IdProvider, 
         TokenProvider,
     },
-    app::commands::{
-        LOGIN_ATTEMPTS_BEFORE_FIRST_LOCKING,
-        LOGIN_ATTEMPTS_AFTER_FIRST_LOCKING,
-        LOCKING_IN_MINUTES,
-        Session,
-        UserSecret,
+    app::{
         UserCredential,
-        AuthenticateUserDao,
-        ChangePasswordDao,
+        UserSecret,
+        queries::{
+            FindUserCredentialDao,
+            FindUserSecretDao,
+        },
+        commands::{
+            LOGIN_ATTEMPTS_BEFORE_FIRST_LOCKING,
+            LOGIN_ATTEMPTS_AFTER_FIRST_LOCKING,
+            LOCKING_IN_MINUTES,
+            Session,
+            AuthenticateUserDao,
+            ChangePasswordDao,
+        },
     },
 };
 
@@ -24,7 +30,7 @@ where
     V: HashVerifierProvider,
     I: IdProvider,
     T: TokenProvider,
-    A: AuthenticateUserDao + ChangePasswordDao,
+    A: FindUserCredentialDao + FindUserSecretDao + AuthenticateUserDao + ChangePasswordDao,
 {
     hash_func_provider: H,
     hash_verifier_provider: V,
@@ -39,7 +45,7 @@ where
     V: HashVerifierProvider,
     I: IdProvider,
     T: TokenProvider,
-    A: AuthenticateUserDao + ChangePasswordDao,
+    A: FindUserCredentialDao + FindUserSecretDao + AuthenticateUserDao + ChangePasswordDao,
 {
     pub fn new(hash_func_provider: H, hash_verifier_provider: V, refresh_token_generator: I, access_token_provider: T, repo: A) -> Self {
         Self {

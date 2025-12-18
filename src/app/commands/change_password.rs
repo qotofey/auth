@@ -4,20 +4,22 @@ use crate::{
         HashFuncProvider,
         HashVerifierProvider, 
     },
-    app::commands::{
-        // LOGIN_ATTEMPTS_BEFORE_FIRST_LOCKING,
-        // LOGIN_ATTEMPTS_AFTER_FIRST_LOCKING,
-        // LOCKING_IN_MINUTES,
-        UserCredential,
-        ChangePasswordDao,
-    }
+    app::{
+        queries::{
+            FindUserSecretDao,
+        },
+        commands::{
+            UserCredential,
+            ChangePasswordDao,
+        },
+    },
 };
 
 pub struct ChangePasswordCommand<H, V, C>
 where
     H: HashFuncProvider,
     V: HashVerifierProvider,
-    C: ChangePasswordDao,
+    C: FindUserSecretDao + ChangePasswordDao,
 {
     hash_func_provider: H,
     hash_verifier_provider: V,
@@ -28,7 +30,7 @@ impl<H, V, C> ChangePasswordCommand<H, V, C>
 where
     H: HashFuncProvider,
     V: HashVerifierProvider,
-    C: ChangePasswordDao,
+    C: FindUserSecretDao + ChangePasswordDao,
 {
     pub fn new(hash_func_provider: H, hash_verifier_provider: V, repo: C) -> Self {
         Self {

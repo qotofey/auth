@@ -1,4 +1,5 @@
 use crate::errors::AppError;
+use crate::app::UserCredential;
 
 pub mod register_user;
 pub mod authenticate_user;
@@ -18,55 +19,32 @@ pub struct Session {
     pub refresh_token: String,
 }
 
-#[derive(sqlx::FromRow)]
-pub struct UserSecret {
-    pub id: uuid::Uuid,
-    #[sqlx(try_from = "uuid::Uuid")]
-    pub user_id: String,
-    pub password_digest: String,
-}
-
-#[derive(sqlx::FromRow)]
-pub struct UserCredential {
-    pub id: uuid::Uuid,
-    pub kind: Option<String>,
-    pub login: String,
-    pub confirmed_at: Option<chrono::NaiveDateTime>,
-    pub user_id: uuid::Uuid,
-    #[sqlx(rename = "login_attempts")]
-    pub failure_login_attempts: i16,
-    pub locked_until: Option<chrono::NaiveDateTime>,
-}
-
 pub trait RegisterUserDao {
-    async fn register_user(&self, login_type: String, login: String, password_digest: String) -> Result<(), AppError>;
+    fn register_user(&self, login_type: String, login: String, password_digest: String) -> impl std::future::Future<Output = Result<(), AppError>> + Send;
 }
 
 pub trait AuthenticateUserDao {
-    async fn find_user_credential_by_login(&self, login: String) -> Result<Option<UserCredential>, sqlx::Error>;
-    async fn update_failure_login(&self, id: uuid::Uuid, actual_failure_login_attempts: u16, locked_until: Option<chrono::NaiveDateTime>) -> Result<(), AppError>;
-    async fn create_session(&self, user_credential_id: uuid::Uuid, refresh_token: String) -> Result<(), AppError>;
+    fn update_failure_login(&self, id: uuid::Uuid, actual_failure_login_attempts: u16, locked_until: Option<chrono::NaiveDateTime>) -> impl std::future::Future<Output = Result<(), AppError>> + Send;
+    fn create_session(&self, user_credential_id: uuid::Uuid, refresh_token: String) -> impl std::future::Future<Output = Result<(), AppError>> + Send;
 }
 
 pub trait RefreshSessionDao {
-    async fn refresh_session(&self, old_refresh_token: String, new_refresh_token: String) -> Result<Option<UserCredential>, sqlx::Error>;
+    fn refresh_session(&self, old_refresh_token: String, new_refresh_token: String) -> impl std::future::Future<Output = Result<Option<UserCredential>, AppError>> + Send;
 }
 
 pub trait DestroySessionDao {
-    async fn destroy_session(&self, refresh_token: String) -> Result<(), AppError>;
+    fn destroy_session(&self, refresh_token: String) -> impl std::future::Future<Output = Result<(), AppError>> + Send;
 }
 
 pub trait ChangePasswordDao {
-    // TODO: если не найдена запись - паникаовать
-    async fn find_user_secret_by_user_id(&self, id: uuid::Uuid) -> Result<Option<UserSecret>, sqlx::Error>; 
-    async fn upgrade_password_digest(&self, user_secret_id: uuid::Uuid, new_password_digest: String) -> Result<(), AppError>;
+    fn upgrade_password_digest(&self, user_secret_id: uuid::Uuid, new_password_digest: String) -> impl std::future::Future<Output = Result<(), AppError>> + Send;
 }
 
 pub trait DeleteUserDao {
-    async fn delete_user_by_id(&self, user_id: uuid::Uuid) -> Result<(), AppError>;
+    fn delete_user_by_id(&self, user_id: uuid::Uuid) -> impl std::future::Future<Output = Result<(), AppError>> + Send;
 }
 
 pub trait RestoreUserDao {
-    async fn restore_user_by_id(&self, user_id: uuid::Uuid) -> Result<(), AppError>;
+    fn restore_user_by_id(&self, user_id: uuid::Uuid) -> impl std::future::Future<Output = Result<(), AppError>> + Send;
 }
 
